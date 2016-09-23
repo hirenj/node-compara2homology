@@ -1,16 +1,15 @@
 {
-  "name": "download-compara",
-  "version": "1.0.0",
-  "description": "",
+  "name": "node-compara2homology",
+  "version": "0.0.1",
+  "description": "Extract homologous proteins from Ensembl Compara and produce JSON documents for web apis",
   "main": "index.js",
   "dependencies": {
-    "mysql": "^2.11.1",
-    "stream-stream": "^1.2.6"
+    "mysql": "^2.11.1"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Hiren Joshi <hirenj@gmail.com>",
   "license": "ISC"
 }

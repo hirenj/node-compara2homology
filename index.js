@@ -2,19 +2,21 @@
 
 const mysql = require('mysql');
 
-let connection = mysql.createConnection({
-  host     : 'ensembldb.ensembl.org',
-  user     : 'anonymous',
-  database : 'ensembl_compara_85'
-});
-
 const stream = require('stream');
 const util = require('util');
 
 const Transform = stream.Transform;
 const PassThrough = stream.PassThrough;
 
-const joiner = require('stream-stream');
+let ensembl_release = 'ensembl_compara_85';
+let reference_taxonomies = [9606,10090,559292,284812];
+let nonreference_taxonomies = [10029,10116,6239,7227,9823];
+
+let connection = mysql.createConnection({
+  host     : 'ensembldb.ensembl.org',
+  user     : 'anonymous',
+  database : ensembl_release
+});
 
 function FamilyGroup(options) {
   // allow use without new
@@ -47,25 +49,25 @@ FamilyGroup.prototype._flush = function (cb) {
   cb();
 };
 
-function OrthologyGroup(options) {
+function HomologyGroup(options) {
   // allow use without new
-  if (!(this instanceof OrthologyGroup)) {
-    return new OrthologyGroup(options);
+  if (!(this instanceof HomologyGroup)) {
+    return new HomologyGroup(options);
   }
   // init Transform
   Transform.call(this, options);
 }
-util.inherits(OrthologyGroup, Transform);
+util.inherits(HomologyGroup, Transform);
 
-OrthologyGroup.prototype._transform = function (family_entry, enc, cb) {
+HomologyGroup.prototype._transform = function (family_entry, enc, cb) {
   let family = family_entry[1];
   let self = this;
   let uniprots = family.map(entry => entry.uniprot);
   let taxonomies = family.map(entry => entry.taxonomy);
   let family_id = family_entry[0];
-  let ortho_data = {'orthos' : uniprots, 'taxonomy' : taxonomies, 'family' : family_id };
+  let homology_data = {'homology' : uniprots, 'taxonomy' : taxonomies, 'family' : family_id };
   uniprots.forEach(function(uniprot) {
-    self.push([uniprot, ortho_data]);
+    self.push([uniprot, homology_data]);
   });
   cb();
 };
@@ -101,7 +103,7 @@ CheapJSON.prototype._flush = function(cb) {
 
 //mysql --host=ensembldb.ensembl.org --port=3306 --user=anonymous
 
-let families = connection.query("select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in (9606,10090,559292,284812) and seq_member.source_name = 'Uniprot/SWISSPROT') union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in (10029,10116,6239,7227,9823) and seq_member.source_name = 'Uniprot/SPTREMBL' )) order by family_id")
+let families = connection.query('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id')
   .stream()
   .pipe(new FamilyGroup({'objectMode' : true}));
 
@@ -109,7 +111,7 @@ let writer = new CheapJSON({});
 
 writer.pipe(process.stdout);
 
-families.pipe(new OrthologyGroup({'objectMode' : true})).pipe(writer);
+families.pipe(new HomologyGroup({'objectMode' : true})).pipe(writer);
 
 families.pipe(writer);
 
