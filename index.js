@@ -4,6 +4,9 @@ const mysql = require('mysql');
 
 const stream = require('stream');
 const util = require('util');
+const path = require('path');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
 
 const Transform = stream.Transform;
 const PassThrough = stream.PassThrough;
@@ -50,13 +53,12 @@ FamilyGroup.prototype._flush = function (cb) {
 };
 
 function HomologyGroup(options) {
-  // allow use without new
   if (!(this instanceof HomologyGroup)) {
     return new HomologyGroup(options);
   }
-  // init Transform
   Transform.call(this, options);
 }
+
 util.inherits(HomologyGroup, Transform);
 
 HomologyGroup.prototype._transform = function (family_entry, enc, cb) {
@@ -101,19 +103,40 @@ CheapJSON.prototype._flush = function(cb) {
   cb();
 };
 
-//mysql --host=ensembldb.ensembl.org --port=3306 --user=anonymous
+function FamilyJSON(basepath,options) {
+  if (!(this instanceof FamilyJSON)) {
+    return new FamilyJSON(basepath,options);
+  }
+  this.base = basepath;
+  Transform.call(this, options);
+}
+
+util.inherits(FamilyJSON, Transform);
+
+FamilyJSON.prototype._transform = function (family_entry, enc, cb) {
+  let family = family_entry[1];
+  let family_id = family_entry[0];
+  fs.writeFile( path.join(this.base,family_id), JSON.stringify(family), function() {} );
+  cb();
+};
 
 let families = connection.query('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id')
   .stream()
   .pipe(new FamilyGroup({'objectMode' : true}));
 
-let writer = new CheapJSON({});
+let writer = new CheapJSON({ 'mimetype' : 'application/json+homology', 'title' : 'Homology', 'version' : ensembl_release });
 
 writer.pipe(process.stdout);
 
 families.pipe(new HomologyGroup({'objectMode' : true})).pipe(writer);
 
-families.pipe(writer);
+mkdirp('families', function (err) {
+  if (err) {
+    console.error(err);
+  } else {
+    families.pipe(new FamilyJSON('families',{'objectMode' : true}));
+  }
+});
 
 writer.on('end', function () {
   process.exit(0);
