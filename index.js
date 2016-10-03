@@ -128,22 +128,22 @@ let writer = new CheapJSON({ 'mimetype' : 'application/json+homology', 'title' :
 
 let alignment_writer = new CheapJSON({'mimetype' : 'application/json+homology_alignment', 'title' : 'Homology Alignments', 'version' : ensembl_release });
 
-families
+let homology_file = families
 .pipe(new HomologyGroup({'objectMode' : true}))
 .pipe(writer)
 .pipe(fs.createWriteStream('homology.json'));
 
-families
+let homology_alignment_file = families
 .pipe(alignment_writer)
 .pipe(fs.createWriteStream('homology_alignment.json'));
 
 let homology_promise = new Promise(function(resolve,reject) {
-  writer.on('end', resolve);
+  homology_file.on('close', resolve);
   writer.on('error', reject);
 });
 
 let alignment_promise = new Promise(function(resolve,reject) {
-  alignment_writer.on('end', resolve);
+  homology_alignment_file.on('close', resolve);
   alignment_writer.on('error', reject);
 });
 
