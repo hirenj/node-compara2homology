@@ -147,4 +147,4 @@ let alignment_promise = new Promise(function(resolve,reject) {
   alignment_writer.on('error', reject);
 });
 
-Promise.all([homology_promise,alignment_promise]).then( () => process.exit(0) ).catch( () => process.exit(1) );
+Promise.all([homology_promise,alignment_promise]).then( () => console.log('Wrote homology groups') || process.exit(0) ).catch( (err) => console.log('ERROR',err) || process.exit(1) );
