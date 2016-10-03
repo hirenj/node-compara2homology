@@ -35,7 +35,7 @@ util.inherits(FamilyGroup, Transform);
 FamilyGroup.prototype._transform = function (chunk, enc, cb) {
   if (this.last_family && chunk.family_id !== this.last_family) {
     if (this.entries.length > 1) {
-      this.push(["fam"+this.last_family, [].concat(this.entries)]);      
+      this.push(["fam"+this.last_family, [].concat(this.entries)]);
     }
     this.entries.length = 0;
   }
@@ -46,7 +46,7 @@ FamilyGroup.prototype._transform = function (chunk, enc, cb) {
 
 FamilyGroup.prototype._flush = function (cb) {
   if (this.entries.length > 1) {
-    this.push(["fam"+this.last_family, [].concat(this.entries)]);      
+    this.push(["fam"+this.last_family, [].concat(this.entries)]);
   }
   this.entries.length = 0;
   cb();
@@ -126,19 +126,25 @@ let families = connection.query('select family_id,stable_id,taxon_id,cigar_line 
 
 let writer = new CheapJSON({ 'mimetype' : 'application/json+homology', 'title' : 'Homology', 'version' : ensembl_release });
 
-writer.pipe(process.stdout);
+let alignment_writer = new CheapJSON({'mimetype' : 'application/json+homology_alignment', 'title' : 'Homology Alignments', 'version' : ensembl_release });
 
-families.pipe(new HomologyGroup({'objectMode' : true})).pipe(writer);
+families
+.pipe(new HomologyGroup({'objectMode' : true}))
+.pipe(writer)
+.pipe(fs.createWriteStream('homology.json'));
 
-mkdirp('families', function (err) {
-  if (err) {
-    console.error(err);
-  } else {
-    families.pipe(new FamilyJSON('families',{'objectMode' : true}));
-  }
+families
+.pipe(alignment_writer)
+.pipe(fs.createWriteStream('homology_alignment.json'));
+
+let homology_promise = new Promise(function(resolve,reject) {
+  writer.on('end', resolve);
+  writer.on('error', reject);
 });
 
-writer.on('end', function () {
-  process.exit(0);
+let alignment_promise = new Promise(function(resolve,reject) {
+  alignment_writer.on('end', resolve);
+  alignment_writer.on('error', reject);
 });
 
+Promise.all([homology_promise,alignment_promise]).then( () => process.exit(0) ).catch( () => process.exit(1) );
