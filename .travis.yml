@@ -6,7 +6,7 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then npm run-script generate; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run-script generate; fi
 before_deploy:
-  -  mkdir "output"; if compgen -G 'homolog*.json' > /dev/null; then for file in homolog*.json;do file=$(basename $file); mkdir "output/${file%.json}"; mv "output/$file" "output/${file%.json}/homology" ; done; fi
+  -  mkdir "output"; if compgen -G 'homolog*.json' > /dev/null; then for file in homolog*.json;do file=$(basename $file); mkdir "output/${file%.json}"; mv "$file" "output/${file%.json}/homology" ; done; fi
 deploy:
   - provider: s3
     access_key_id: AKIAJFGWGCZTSVH6R36Q
