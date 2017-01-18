@@ -1,0 +1,22 @@
+version: 0.1
+
+phases:
+  install:
+    commands:
+      - npm install
+  pre_build:
+    commands:
+      - compara_version=$(curl -Sss 'https://rest.ensembl.org/info/comparas?' -H 'Content-type:text/xml' | grep 'release' | sed -e 's/.*release="//' -e 's/".*//')
+      - testversion 'homology.json' --static "\$compara_version"
+  build:
+    commands:
+      - echo "Running build step"
+      - node index.js --version=$TARGETVERSION
+      - if [ -e dist ]; then mkdir dist; fi
+      - mv homology*.json dist/
+  post_build:
+    commands:
+      - echo "Skipping post_build"
+artifacts:
+  files:
+    - dist

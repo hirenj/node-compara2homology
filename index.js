@@ -6,18 +6,22 @@ const stream = require('stream');
 const util = require('util');
 const path = require('path');
 const fs = require('fs');
+const nconf = require('nconf');
 const mkdirp = require('mkdirp');
 
 const Transform = stream.Transform;
 const PassThrough = stream.PassThrough;
 
-let ensembl_release = 'ensembl_compara_85';
+nconf.argv().env();
+
+let ensembl_release = 'ensembl_compara_'+( nconf.get('version') || '85');
 let reference_taxonomies = [9606,10090,559292,284812];
 let nonreference_taxonomies = [10029,10116,6239,7227,9823];
 
 let connection = mysql.createConnection({
   host     : 'ensembldb.ensembl.org',
   user     : 'anonymous',
+  port     : 5306,
   database : ensembl_release
 });
 
@@ -119,6 +123,8 @@ FamilyJSON.prototype._transform = function (family_entry, enc, cb) {
   fs.writeFile( path.join(this.base,family_id), JSON.stringify(family), function() {} );
   cb();
 };
+
+console.log('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id');
 
 let families = connection.query('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id')
   .stream()
