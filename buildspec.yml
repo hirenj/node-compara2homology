@@ -13,6 +13,7 @@ phases:
   build:
     commands:
       - echo "Running build step"
+      - df -h
       - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5 - | fgrep 'Uniprot' > seq_member.txt
       - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > family_member.txt
       - head -10 seq_member.txt > seq_member_short.txt
