@@ -15,6 +15,8 @@ phases:
       - echo "Running build step"
       - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5 - | fgrep 'Uniprot' > seq_member.txt
       - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > family_member.txt
+      - head -3 seq_member.txt
+      - head -3 family_member.txt
       - sqlite3 compara.db < sqlcommands
       - node index.js --version=$TARGETVERSION --database=compara.db --taxonomy=$BUILD_TAXONOMY
       - if [ ! -e dist ]; then mkdir dist; fi
