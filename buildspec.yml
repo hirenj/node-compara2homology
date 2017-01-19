@@ -18,7 +18,7 @@ phases:
       - head -10 seq_member.txt > seq_member_short.txt
       - head -10 family_member.txt > family_member_short.txt
       - sqlite3 compara.db < sqlcommands-test
-      - sqlite3 compara.db 'select * from seq_member'
+      - sqlite3 compara.db 'select \* from seq_member'
       - rm compara.db
       - sqlite3 compara.db < sqlcommands
       - node index.js --version=$TARGETVERSION --database=compara.db --taxonomy=$BUILD_TAXONOMY
