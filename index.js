@@ -1,6 +1,6 @@
 "use strict";
 
-const mysql = require('mysql');
+const sqlite = require('sqlite3');
 
 const stream = require('stream');
 const util = require('util');
@@ -15,15 +15,11 @@ const PassThrough = stream.PassThrough;
 nconf.argv().env();
 
 let ensembl_release = 'ensembl_compara_'+( nconf.get('version') || '85');
-let reference_taxonomies = [9606,10090,559292,284812];
-let nonreference_taxonomies = [10029,10116,6239,7227,9823];
 
-let connection = mysql.createConnection({
-  host     : 'ensembldb.ensembl.org',
-  user     : 'anonymous',
-  port     : 5306,
-  database : ensembl_release
-});
+let wanted_taxonomy = (nconf.get('taxonomy') || '').split(',').map( id => parseInt(id) );
+
+let reference_taxonomies = [9606,10090,559292,284812].filter( id => wanted_taxonomy.indexOf(id) >= 0 );
+let nonreference_taxonomies = [10029,10116,6239,7227,9823].filter( id => wanted_taxonomy.indexOf(id) >= 0 );
 
 function FamilyGroup(options) {
   // allow use without new
@@ -124,11 +120,32 @@ FamilyJSON.prototype._transform = function (family_entry, enc, cb) {
   cb();
 };
 
-console.log('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id');
+let swissprot_ids = reference_taxonomies.concat(nonreference_taxonomies).map( id => `'${id}'` ).join(',');
+let trembl_ids = nonreference_taxonomies.map( id => `'${id}'` ).join(',');
 
-let families = connection.query('select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+reference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SWISSPROT") union (select family_id,stable_id,taxon_id,cigar_line from family_member left join seq_member using (seq_member_id) where (seq_member.taxon_id in ('+nonreference_taxonomies.join(',')+') and seq_member.source_name = "Uniprot/SPTREMBL" )) order by family_id')
-  .stream()
-  .pipe(new FamilyGroup({'objectMode' : true}));
+
+let sql_query =
+`SELECT family_id,stable_id,taxon_id,cigar_line
+ FROM family_member INNER JOIN (
+  SELECT seq_member_id,taxon_id,stable_id
+  FROM seq_member
+  WHERE (source_name = "Uniprot/SWISSPROT" AND taxon_id in (${swissprot_ids}) ) OR (source_name = "Uniprot/SPTREMBL" and taxon_id in (${trembl_ids}))
+) USING(seq_member_id)
+  ORDER BY family_id`;
+
+let db = new sqlite.Database(nconf.get('database'));
+
+let families = new FamilyGroup({'objectMode' : true});
+
+var rs = new PassThrough({ objectMode: true });
+
+db.each(sql_query,[], (err,row) => rs.push(row),
+() => {
+  console.log("All done with SQL query");
+  rs.end();
+} );
+
+rs.pipe(families);
 
 let writer = new CheapJSON({ 'mimetype' : 'application/json+homology', 'title' : 'Homology', 'version' : ensembl_release });
 
