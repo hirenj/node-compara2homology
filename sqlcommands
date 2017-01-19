@@ -2,11 +2,11 @@ CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id);
 
 CREATE TABLE family_member(family_id,seq_member_id,cigar_line);
 
-.mode tabs seq_member
+.mode tabs
 .separator '	'
 .import seq_member.txt seq_member
 
-.mode tabs family_member
+.mode tabs
 .separator '	'
 .import family_member.txt family_member
 
