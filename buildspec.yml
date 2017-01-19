@@ -14,15 +14,10 @@ phases:
     commands:
       - echo "Running build step"
       - df -h
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5 - | fgrep 'Uniprot' > seq_member.txt
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > family_member.txt
-      - head -10 seq_member.txt > seq_member_short.txt
-      - head -10 family_member.txt > family_member_short.txt
-      - sqlite3 compara.db < sqlcommands-test
-      - sqlite3 compara.db 'select seq_member_id,stable_id from seq_member'
-      - rm compara.db
-      - sqlite3 compara.db < sqlcommands
-      - node index.js --version=$TARGETVERSION --database=compara.db --taxonomy=$BUILD_TAXONOMY
+      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5 - | fgrep 'Uniprot' > /codebuild/output/seq_member.txt
+      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > /codebuild/output/family_member.txt
+      - bash ./do_sqlite.sh
+      - node index.js --version=$TARGETVERSION --database=/codebuild/output/compara.db --taxonomy=$BUILD_TAXONOMY
       - if [ ! -e dist ]; then mkdir dist; fi
       - mv homology*.json dist/
   post_build:
