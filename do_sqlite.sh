@@ -1,9 +1,11 @@
 #!/bin/bash
 
-cp sqlcommands /codebuild/output
-cp sqlcommands-test /codebuild/output
+workdir=$1
 
-cd /codebuild/output
+cp sqlcommands $workdir
+cp sqlcommands-test $workdir
+
+cd $workdir
 
 head -10 seq_member.txt > seq_member_short.txt
 head -10 family_member.txt > family_member_short.txt
