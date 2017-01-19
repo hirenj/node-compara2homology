@@ -3,6 +3,8 @@ version: 0.1
 phases:
   install:
     commands:
+      - apt-get update -y
+      - apt-get install -y sqlite3
       - npm install
   pre_build:
     commands:
