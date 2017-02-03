@@ -133,6 +133,26 @@ let sql_query =
 ) USING(seq_member_id)
   ORDER BY family_id`;
 
+let homology_id_query =
+`
+SELECT *
+FROM (
+SELECT homology_id,stable_id,taxon_id,cigar_line
+FROM seq_member JOIN (
+  SELECT sequence_id,homology_id,cigar_line
+  FROM homology_member JOIN (
+    SELECT *
+    FROM seq_member
+    WHERE taxon_id in (${swissprot_ids},${trembl_ids}) and source_name = 'ENSEMBLPEP'
+  ) as all_seqs USING(seq_member_id)
+) USING(sequence_id)
+WHERE source_name = 'Uniprot/SWISSPROT' OR source_name = 'Uniprot/SPTREMBL'
+ORDER BY homology_id
+) GROUP BY homology_id
+ HAVING count(distinct stable_id) > 1`;
+
+// select stable_id,homology_id,taxon_id,cigar_line,count(distinct stable_id) from (select stable_id,homology_id,taxon_id,cigar_line,count(distinct stable_id) from (seq_member join (select sequence_id,homology_id,cigar_line from homology_member join (select * from seq_member where taxon_id in ('9606','7227','6239','284812','559292','9823','10090','10116','10029') and source_name = 'ENSEMBLPEP') as all_seqs using(seq_member_id)) using(sequence_id)) order by homology_id) group by homology_id having count(distinct stable_id) > 1 limit 100
+
 let db = new sqlite.Database(nconf.get('database'));
 
 let families = new FamilyGroup({'objectMode' : true});

@@ -1,14 +1,28 @@
-CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id);
+PRAGMA journal_mode = OFF;
+
+CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id,sequence_id);
 
 CREATE TABLE family_member(family_id,seq_member_id,cigar_line);
+CREATE TABLE homology_member(homology_id,gene_member_id,seq_member_id,cigar_line,perc_cov,perc_id,perc_pos);
 
+/* 1 GB */
 .mode tabs
 .separator '	'
 .import seq_member.txt seq_member
 
+/* 5 GB */
 .mode tabs
 .separator '	'
 .import family_member.txt family_member
 
+/* 11 GB */
+.mode tabs
+.separator '	'
+.import homology_member.txt homology_member
+
 CREATE index seq_member_ids ON family_member(seq_member_id);
+/ * This first index for without the sort */
+CREATE index homology_member_ids ON homology_member(seq_member_id);
+CREATE index homology_member_ids_sort ON homology_member(seq_member_id,homology_id);
 CREATE index source_taxon ON seq_member(taxon_id,source_name);
+CREATE index sequence_id_source_idx on seq_member(sequence_id,source_name);
