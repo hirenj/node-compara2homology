@@ -21,7 +21,7 @@ CREATE TABLE homology_member(homology_id,gene_member_id,seq_member_id,cigar_line
 .import homology_member.txt homology_member
 
 CREATE index seq_member_ids ON family_member(seq_member_id);
-/ * This first index for without the sort */
+/* This first index for without the sort */
 CREATE index homology_member_ids ON homology_member(seq_member_id);
 CREATE index homology_member_ids_sort ON homology_member(seq_member_id,homology_id);
 CREATE index source_taxon ON seq_member(taxon_id,source_name);
