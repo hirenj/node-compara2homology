@@ -3,7 +3,7 @@ PRAGMA journal_mode = OFF;
 CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id,sequence_id);
 
 CREATE TABLE family_member(family_id,seq_member_id,cigar_line);
-CREATE TABLE homology_member(homology_id,gene_member_id,seq_member_id,cigar_line,perc_cov,perc_id,perc_pos);
+CREATE TABLE homology_member(homology_id,gene_member_id,seq_member_id,cigar_line,perc_cov REAL,perc_id REAL,perc_pos REAL);
 
 /* 1 GB */
 .mode tabs

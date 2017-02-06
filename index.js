@@ -137,7 +137,7 @@ let homology_id_query =
 `
 SELECT homology_id,stable_id,taxon_id
 FROM seq_member JOIN (
-  SELECT sequence_id,homology_id
+  SELECT sequence_id,homology_id,perc_id
   FROM homology_member JOIN (
     SELECT *
     FROM seq_member
@@ -146,6 +146,7 @@ FROM seq_member JOIN (
 ) USING(sequence_id)
 WHERE (source_name = 'Uniprot/SWISSPROT' OR source_name = 'Uniprot/SPTREMBL')
 AND taxon_id in (${swissprot_ids},${trembl_ids})
+AND perc_id >= 30
 ORDER BY homology_id
 `;
 
