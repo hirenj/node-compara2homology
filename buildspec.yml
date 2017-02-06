@@ -14,10 +14,8 @@ phases:
     commands:
       - echo "Running build step"
       - df -h
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5,7 - > $WORKDIR/seq_member.txt
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > $WORKDIR/family_member.txt
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/homology_member.txt.gz' | gunzip > $WORKDIR/homology_member.txt
-      - bash ./do_sqlite.sh $WORKDIR
+      - bash ./retrieve_data.sh $TARGETVERSION $WORKDIR
+      - bash ./setup_sqlite.sh $WORKDIR
       - node index.js --version=$TARGETVERSION --database=$WORKDIR/compara.db --taxonomy=$BUILD_TAXONOMY
       - if [ ! -e dist ]; then mkdir dist; fi
       - mv homology*.json dist/
