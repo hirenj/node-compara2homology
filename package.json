@@ -6,6 +6,7 @@
   "dependencies": {
     "mkdirp": "^0.5.1",
     "nconf": "^0.8.4",
+    "node-clustal": "hirenj/node-clustal",
     "sqlite3": "^3.1.8"
   },
   "devDependencies": {},
