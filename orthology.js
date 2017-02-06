@@ -71,7 +71,7 @@ let bytesread = new BytesRead();
 
 // Existing group for D - add in C,D,E to each member
 
-// A => [A,B,C,D,E], B => [A,B,C,D,E], C => [C,D,E], D => [A,B,C,D,E] 
+// A => [A,B,C,D,E], B => [A,B,C,D,E], C => [C,D,E], D => [A,B,C,D,E]
 
 // No
 
