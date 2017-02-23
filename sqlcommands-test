@@ -1,4 +1,4 @@
-CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id);
+CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id,sequence_id);
 
 CREATE TABLE family_member(family_id,seq_member_id,cigar_line);
 
