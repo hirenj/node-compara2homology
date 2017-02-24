@@ -4,6 +4,7 @@
   "description": "Extract homologous proteins from Ensembl Compara and produce JSON documents for web apis",
   "main": "index.js",
   "dependencies": {
+    "csv-parse": "^1.2.0",
     "mkdirp": "^0.5.1",
     "nconf": "^0.8.4",
     "node-clustal": "hirenj/node-clustal",

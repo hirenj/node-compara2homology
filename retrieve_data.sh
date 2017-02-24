@@ -16,3 +16,11 @@ mkdir -p $workdir/pan
 
 curl "ftp://ftp.ensemblgenomes.org/pub/pan_ensembl/release-${ensembl_genomes_version}/mysql/ensembl_compara_pan_homology_${ensembl_genomes_version}_${targetversion}/seq_member.txt.gz" | gunzip | cut -f 1,2,4,5,7 - > $workdir/pan/seq_member.txt
 curl "ftp://ftp.ensemblgenomes.org/pub/pan_ensembl/release-${ensembl_genomes_version}/mysql/ensembl_compara_pan_homology_${ensembl_genomes_version}_${targetversion}/homology_member.txt.gz" | gunzip > $workdir/pan/homology_member.txt
+
+
+touch $workdir/idmappings.tsv
+
+curl 'http://www.uniprot.org/uniprot/?&compress=no&query=&fil=organism:6239&force=no&format=txt' | awk '$1 == "AC" { printf "\n" $2 "\t" } $1 == "DR" && $2 ~ /EnsemblMetazoa/ { printf $4 }' | tail -n+2 >> $workdir/idmappings.tsv
+curl 'http://www.uniprot.org/uniprot/?&compress=no&query=&fil=organism:7227&force=no&format=txt' | awk '$1 == "AC" { printf "\n" $2 "\t" } $1 == "DR" && $2 ~ /EnsemblMetazoa/ { printf $4 }' >> $workdir/idmappings.tsv
+curl 'http://www.uniprot.org/uniprot/?&compress=no&query=&fil=organism:284812&force=no&format=txt' | awk '$1 == "AC" { printf "\n" $2 "\t" } $1 == "DR" && $2 ~ /EnsemblFungi/ { printf $4 }' >> $workdir/idmappings.tsv
+curl 'http://www.uniprot.org/uniprot/?&compress=no&query=&fil=organism:559292&force=no&format=txt' | awk '$1 == "AC" { printf "\n" $2 "\t" } $1 == "DR" && $2 ~ /EnsemblFungi/ { printf $4 }' >> $workdir/idmappings.tsv
