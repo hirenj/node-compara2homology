@@ -17,7 +17,7 @@ phases:
       - df -h
       - bash ./retrieve_data.sh $TARGETVERSION $WORKDIR
       - bash ./setup_sqlite.sh $WORKDIR
-      - node index.js --version=$TARGETVERSION --database=$WORKDIR/compara.db --taxonomy=$BUILD_TAXONOMY
+      - node index.js --version=$TARGETVERSION --database=$WORKDIR/base/compara.db --taxonomy=$BUILD_TAXONOMY
       - if [ ! -e dist ]; then mkdir dist; fi
       - mv homology*.json dist/
   post_build:
