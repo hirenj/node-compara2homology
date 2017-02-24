@@ -19,7 +19,8 @@ phases:
       - bash ./setup_sqlite.sh $WORKDIR
       - node index.js --version=$TARGETVERSION --database=$WORKDIR/base/compara.db --taxonomy=$BUILD_TAXONOMY
       - if [ ! -e dist ]; then mkdir dist; fi
-      - mv homology*.json dist/
+      - mv homology.json dist/
+      - if [ -e homology_alignment.json ]; then mv homology_alignment.json dist/; fi
   post_build:
     commands:
       - echo "Skipping post_build"

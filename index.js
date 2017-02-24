@@ -33,7 +33,7 @@ let homology_file = families
 
 let homology_alignment_file = families
 .pipe(alignment_writer)
-.pipe(fs.createWriteStream('homology_alignment.json'));
+.pipe(fs.createWriteStream('homology_families.json'));
 
 let homology_promise = new Promise(function(resolve,reject) {
   homology_file.on('close', resolve);
