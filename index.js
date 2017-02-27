@@ -6,13 +6,12 @@ const fs = require('fs');
 const nconf = require('nconf');
 const mkdirp = require('mkdirp');
 
-const FamilyGroup = require('./groupers').FamilyGroup;
-const HomologyGroup = require('./groupers').HomologyGroup;
+const FamilyGroup = require('./js/groupers').FamilyGroup;
+const HomologyGroup = require('./js/groupers').HomologyGroup;
 
-const CheapJSON = require('./output').CheapJSON;
+const CheapJSON = require('./js/output').CheapJSON;
 
 nconf.argv().env();
-
 
 let families = new FamilyGroup();
 

@@ -5,7 +5,7 @@ const sqlite = require('sqlite3');
 const path = require('path');
 const PassThrough = require('stream').PassThrough;
 const GroupMaker = require('./groupers').GroupMaker;
-const Aligner = require('./aligner').Aligner;
+const Expander = require('./expander').Expander;
 const IdMapper = require('./idmapper').IdMapper;
 
 let wanted_taxonomy = (nconf.get('taxonomy') || '').split(',').map( id => parseInt(id) );
@@ -129,9 +129,9 @@ let pan_retrieve = function(group_maker) {
 
 let retrieve = function() {
   let group_maker = new GroupMaker();
-  let aligner = new Aligner();
+  let expander = new Expander();
 
-  group_maker.pipe(aligner);
+  group_maker.pipe(expander);
 
   Promise.resolve()
     .then( () => base_retrieve(group_maker) )
@@ -140,7 +140,7 @@ let retrieve = function() {
     .then( () => console.log("Retrieved pan data") )
     .then( () => group_maker.end() );
 
-  return Promise.resolve(aligner);
+  return Promise.resolve(expander);
   // We should spit out a stream with:
   // family_id, stable_id, cigar_line, taxon_id
 
