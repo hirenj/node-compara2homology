@@ -15,6 +15,8 @@ const get_input_json_stream = function() {
 
 let stream  = get_input_json_stream();
 
-let alignment_writer = new CheapJSON({'mimetype' : 'application/json+homology_alignment', 'title' : 'Homology Alignments', 'version' : 'FIXME' });
+let ensembl_release = 'ensembl_compara_'+( nconf.get('version') || '85');
+
+let alignment_writer = new CheapJSON({'mimetype' : 'application/json+homology_alignment', 'title' : 'Homology Alignments', 'version' : ensembl_release });
 stream.pipe(new Aligner(nconf.get('database'))).pipe(alignment_writer).pipe(fs.createWriteStream(nconf.get('output') || 'homology_alignment.json'));
 
