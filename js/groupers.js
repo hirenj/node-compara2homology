@@ -95,7 +95,7 @@ GroupMaker.prototype.merge_ids = function(group) {
   let ids = group.map( obj => obj.stable_id );
 
   group.forEach( obj => {
-    taxon_maps[obj.stable_id] = obj.taxon_id;
+    taxon_maps[obj.stable_id] = parseInt(obj.taxon_id);
   });
 
   ids.forEach( (id) => {
