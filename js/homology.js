@@ -7,6 +7,7 @@ const PassThrough = require('stream').PassThrough;
 const GroupMaker = require('./groupers').GroupMaker;
 const Expander = require('./expander').Expander;
 const IdMapper = require('./idmapper').IdMapper;
+const fs = require('fs');
 
 let wanted_taxonomy = (nconf.get('taxonomy') || '').split(',').map( id => parseInt(id) );
 
@@ -129,15 +130,16 @@ let pan_retrieve = function(group_maker) {
 
 let read_inparanoid_data = function(sqltable_file) {
   return new Promise( (resolve) => {
-    let table_parser = require('inparanoid').Parser();
+    let table_parser = require('./inparanoid').Parser();
+    let out_stream = table_parser.output;
     fs.createReadStream(sqltable_file).pipe(table_parser);
-    resolve(table_parser.output);
+    resolve(out_stream);
   });
 };
 
 
 let cho_retrieve = function(group_maker) {
-  return read_inparanoid_data('sqltable.C.griseus-M.musculus').then( stream => {
+  return read_inparanoid_data(nconf.get('cho_sqltable')).then( stream => {
     stream.pipe(group_maker, {end: false});
     return wait_for_stream(stream,"CHO");
   });

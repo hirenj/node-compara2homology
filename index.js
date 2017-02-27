@@ -15,7 +15,7 @@ nconf.argv().env();
 
 let families = new FamilyGroup();
 
-require('./homology').retrieve().then( stream => stream.pipe(families) );
+require('./js/homology').retrieve().then( stream => stream.pipe(families) );
 
 // require('./family').retrieve().then( stream => stream.pipe(families) );
 

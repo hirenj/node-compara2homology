@@ -39,3 +39,8 @@ if [ $? -gt 0 ]; then exit 1; fi
 
 curl 'http://www.uniprot.org/uniprot/?&compress=no&query=&fil=organism:559292&force=no&format=txt' | awk '$1 == "AC" { printf "\n" $2 "\t" } $1 == "DR" && $2 ~ /EnsemblFungi/ { printf $4 }' >> $workdir/idmappings.tsv
 if [ $? -gt 0 ]; then exit 1; fi
+
+
+curl 'http://inparanoid.sbc.su.se/download/8.0_current/Orthologs_other_formats/C.griseus/InParanoid.C.griseus-M.musculus.tgz' > $workdir/inparanoid.cho.tgz
+
+tar -zxf $workdir/inparanoid.cho.gz sqltable.C.griseus-M.musculus
