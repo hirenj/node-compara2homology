@@ -127,6 +127,22 @@ let pan_retrieve = function(group_maker) {
         });
 };
 
+let read_inparanoid_data = function(sqltable_file) {
+  return new Promise( (resolve) => {
+    let table_parser = require('inparanoid').Parser();
+    fs.createReadStream(sqltable_file).pipe(table_parser);
+    resolve(table_parser.output);
+  });
+};
+
+
+let cho_retrieve = function(group_maker) {
+  return read_inparanoid_data('sqltable.C.griseus-M.musculus').then( stream => {
+    stream.pipe(group_maker, {end: false});
+    return wait_for_stream(stream,"CHO");
+  });
+};
+
 let retrieve = function() {
   let group_maker = new GroupMaker();
   let expander = new Expander();
@@ -138,6 +154,8 @@ let retrieve = function() {
     .then( () => console.log("Retrieved base data") )
     .then( () => pan_retrieve(group_maker) )
     .then( () => console.log("Retrieved pan data") )
+    .then( () => cho_retrieve(group_maker) )
+    .then( () => console.log("Retrieved CHO data") )
     .then( () => group_maker.end() );
 
   return Promise.resolve(expander);

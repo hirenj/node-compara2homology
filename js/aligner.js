@@ -148,7 +148,6 @@ Aligner.prototype.run_alignments = function(cb) {
     let populated_entries = [].concat(this.cached_entries);
     this.waiting_proteins.length = 0;
     this.cached_entries.length = 0;
-    cb();
     return populated_entries
   })
   .then(execute_alignments)
@@ -156,6 +155,9 @@ Aligner.prototype.run_alignments = function(cb) {
     groups.map( entry => {
       return [ 'fam'+entry.family, entry.entries ];
     }).forEach( entry => this.push(entry) );
+  })
+  .then( () => {
+    cb();
   })
   .catch( err => console.error(err,err.stack));
 };

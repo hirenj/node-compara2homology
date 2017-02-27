@@ -18,5 +18,11 @@ let stream  = get_input_json_stream();
 let ensembl_release = 'ensembl_compara_'+( nconf.get('version') || '85');
 
 let alignment_writer = new CheapJSON({'mimetype' : 'application/json+homology_alignment', 'title' : 'Homology Alignments', 'version' : ensembl_release });
-stream.pipe(new Aligner(nconf.get('database'))).pipe(alignment_writer).pipe(fs.createWriteStream(nconf.get('output') || 'homology_alignment.json'));
+let homology_alignment_file = stream.pipe(new Aligner(nconf.get('database'))).pipe(alignment_writer).pipe(fs.createWriteStream(nconf.get('output') || 'homology_alignment.json'));
 
+let alignment_promise = new Promise(function(resolve,reject) {
+  homology_alignment_file.on('close', resolve);
+  alignment_writer.on('error', reject);
+});
+
+alignment_promise.then( () => console.log("Finished writing alignments") || process.exit(0) );
