@@ -9,17 +9,20 @@ phases:
   pre_build:
     commands:
       - compara_version=$(curl -Sss 'https://rest.ensembl.org/info/comparas?' -H 'Content-type:text/xml' | grep 'release' | sed -e 's/.*release="//' -e 's/".*//')
+      - checkversion --fail-on-match --print-remote --remote 'http://rest.ensemblgenomes.org/info/eg_version' --regex '(\d+)' > ensembl_genomes_version.txt
       - testversion 'homology.json' --static "\$compara_version"
   build:
     commands:
       - echo "Running build step"
       - df -h
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/seq_member.txt.gz' | gunzip | cut -f 1,2,4,5 - | fgrep 'Uniprot' > $WORKDIR/seq_member.txt
-      - curl 'ftp://ftp.ensembl.org/pub/release-${TARGETVERSION}/mysql/ensembl_compara_${TARGETVERSION}/family_member.txt.gz' | gunzip > $WORKDIR/family_member.txt
-      - bash ./do_sqlite.sh $WORKDIR
-      - node index.js --version=$TARGETVERSION --database=$WORKDIR/compara.db --taxonomy=$BUILD_TAXONOMY
+      - bash ./setup_sequence_data.sh $WORKDIR
+      - bash ./retrieve_data.sh $TARGETVERSION $WORKDIR
+      - bash ./setup_sqlite.sh $WORKDIR
+      - node index.js --version=$TARGETVERSION --database=$WORKDIR/base/compara.db --taxonomy=$BUILD_TAXONOMY --cho_sqltable=$WORKDIR/sqltable.C.griseus-M.musculus
       - if [ ! -e dist ]; then mkdir dist; fi
-      - mv homology*.json dist/
+      - mv homology.json dist/
+      - node populate_alignments.js --input homology_families.json --version=$TARGETVERSION --database=$WORKDIR/sequences.db --output=homology_alignment.json
+      - if [ -e homology_alignment.json ]; then mv homology_alignment.json dist/; fi
   post_build:
     commands:
       - echo "Skipping post_build"

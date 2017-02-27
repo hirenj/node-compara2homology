@@ -1,0 +1,9 @@
+PRAGMA journal_mode = OFF;
+
+CREATE TABLE sequence(uniprot,sequence);
+
+.mode tabs
+.separator '	'
+.import sequences.tsv sequence
+
+CREATE index accs ON sequence(uniprot);
