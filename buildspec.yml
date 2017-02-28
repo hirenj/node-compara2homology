@@ -21,8 +21,8 @@ phases:
       - node index.js --version=$TARGETVERSION --database=$WORKDIR/base/compara.db --taxonomy=$BUILD_TAXONOMY --cho_sqltable=$WORKDIR/sqltable.C.griseus-M.musculus
       - if [ ! -e dist ]; then mkdir dist; fi
       - mv homology.json dist/
-      - node populate_alignments.js --input homology_families.json --version=$TARGETVERSION --database=$WORKDIR/sequences.db --output=homology_alignment.json
-      - if [ -e homology_alignment.json ]; then mv homology_alignment.json dist/; fi
+      - node populate_alignments.js --input homology_families.json --version=$TARGETVERSION --database=$WORKDIR/sequences.db --output=$WORKDIR/homology_alignment.json
+      - if [ -e $WORKDIR/homology_alignment.json ]; then mv $WORKDIR/homology_alignment.json dist/; fi
   post_build:
     commands:
       - echo "Skipping post_build"

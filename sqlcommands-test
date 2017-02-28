@@ -1,14 +1,7 @@
 CREATE TABLE seq_member(seq_member_id,stable_id,source_name,taxon_id,sequence_id);
 
-CREATE TABLE family_member(family_id,seq_member_id,cigar_line);
-
 .mode tabs
 .separator '	'
 .import seq_member_short.txt seq_member
 
-.mode tabs
-.separator '	'
-.import family_member_short.txt family_member
-
-CREATE index seq_member_ids ON family_member(seq_member_id);
 CREATE index source_taxon ON seq_member(taxon_id,source_name);
