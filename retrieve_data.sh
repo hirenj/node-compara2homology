@@ -27,10 +27,10 @@ echo "Retrieving InParanoid for CHO"
 curl --retry-max-time 300 --retry 5 --retry-delay 0 'http://inparanoid.sbc.su.se/download/8.0_current/Orthologs_other_formats/C.griseus/InParanoid.C.griseus-M.musculus.tgz' > $workdir/inparanoid.cho.tgz
 if [ $? -gt 0 ]; then exit 1; fi
 
-mv sqltable.C.griseus-M.musculus $workdir/sqltable.C.griseus-M.musculus
-
-tar -zxf $workdir/inparanoid.cho.gz sqltable.C.griseus-M.musculus
+tar -zxf $workdir/inparanoid.cho.tgz sqltable.C.griseus-M.musculus
 if [ $? -gt 0 ]; then exit 1; fi
+
+mv sqltable.C.griseus-M.musculus $workdir/sqltable.C.griseus-M.musculus
 
 mkdir -p $workdir/base
 
