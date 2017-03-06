@@ -6,6 +6,9 @@ const util = require('util');
 const Transform = stream.Transform;
 const PassThrough = stream.PassThrough;
 
+const onlyUnique = function(value, index, self) {
+    return self.indexOf(value) === index;
+};
 
 function FamilyGroup() {
   // allow use without new
@@ -97,6 +100,14 @@ GroupMaker.prototype.merge_ids = function(group) {
   group.forEach( obj => {
     taxon_maps[obj.stable_id] = parseInt(obj.taxon_id);
   });
+
+  let taxon_ids = group.map( obj => obj.taxon_id ).filter(onlyUnique);
+
+  // We do not want to include paralogues in our dataset
+  // for the orthologue mappings
+  if (taxon_ids.length < 2) {
+    return;
+  }
 
   ids.forEach( (id) => {
     if ( ! id_maps[id] ) {
