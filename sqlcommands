@@ -9,6 +9,10 @@ CREATE TABLE homology_member(homology_id,gene_member_id,seq_member_id,cigar_line
 .separator '	'
 .import seq_member.txt seq_member
 
+.mode tabs
+.separator '	'
+.import additional_seq_member.tsv seq_member
+
 /* 11 GB */
 .mode tabs
 .separator '	'

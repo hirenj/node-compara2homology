@@ -17,6 +17,8 @@ phases:
       - df -h
       - bash ./setup_sequence_data.sh $WORKDIR
       - bash ./retrieve_data.sh $TARGETVERSION $WORKDIR
+      - bash ./util/update_mismatched_entries.sh $WORKDIR/base
+      - if [ -e additional_seq_member.tsv ]; cp additional_seq_member.tsv $WORKDIR/base/additional_seq_member.tsv; fi
       - bash ./setup_sqlite.sh $WORKDIR
       - node index.js --version=$TARGETVERSION --database=$WORKDIR/base/compara.db --taxonomy=$BUILD_TAXONOMY --cho_sqltable=$WORKDIR/sqltable.C.griseus-M.musculus
       - if [ ! -e dist ]; then mkdir dist; fi

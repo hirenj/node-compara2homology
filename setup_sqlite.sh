@@ -13,7 +13,13 @@ if [ ! -e family_member.txt ]; then
 	touch family_member.txt
 fi
 
+if [ ! -e additional_seq_member.tsv ]; then
+	touch additional_seq_member.tsv
+fi
+
 head -10 seq_member.txt > seq_member_short.txt
+head -10 additional_seq_member.tsv >> seq_member_short.txt
+
 head -10 family_member.txt > family_member_short.txt
 
 sqlite3 compara.db < sqlcommands-test
