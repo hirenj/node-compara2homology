@@ -23,6 +23,9 @@ util.inherits(FamilyGroup, Transform);
 
 FamilyGroup.prototype._transform = function (chunk, enc, cb) {
   if (this.last_family && chunk.family_id !== this.last_family) {
+    if (Array.isArray(chunk)) {
+      this.push(["fam"+this.last_family+"ids", chunk.filter(onlyUnique)]);
+    }
     if (this.entries.length > 1) {
       this.push(["fam"+this.last_family, [].concat(this.entries)]);
     }
@@ -56,6 +59,9 @@ HomologyGroup.prototype._transform = function (family_entry, enc, cb) {
   let uniprots = family.map(entry => entry.uniprot);
   let taxonomies = family.map(entry => entry.taxonomy);
   let family_id = family_entry[0];
+  if (family_id.indexOf('ids') > 0) {
+    uniprots.length = 0;
+  }
   let homology_data = {'homology' : uniprots, 'taxonomy' : taxonomies, 'family' : family_id };
   uniprots.forEach(function(uniprot) {
     self.push([uniprot, homology_data]);
@@ -63,6 +69,33 @@ HomologyGroup.prototype._transform = function (family_entry, enc, cb) {
   cb();
 };
 
+function DoGroups() {
+  if (!(this instanceof DoGroups)) {
+    return new DoGroups();
+  }
+  this.last_id = null;
+  this.group = [];
+  Transform.call(this, {objectMode: true});
+}
+
+util.inherits(DoGroups, Transform);
+
+DoGroups.prototype._transform = function (row, enc, cb) {
+  if (row.family_id !== this.last_id) {
+    if (this.group.length > 0) {
+      this.push(this.group);
+    }
+    this.last_id = row.family_id;
+    this.group = [];
+  }
+  this.group.push(row);
+  cb();
+};
+
+DoGroups.prototype._flush = function(cb) {
+  this.push(this.group);
+  cb();
+};
 
 function GroupMaker() {
   if (!(this instanceof GroupMaker)) {
@@ -85,6 +118,9 @@ GroupMaker.prototype.merge_lists = function(a,b) {
     if (id_maps[a].indexOf(id) < 0) {
       id_maps[a].push(id);
     }
+  });
+  id_maps[b].relationships.forEach( relation => {
+    id_maps[a].relationships.push(relation);
   });
   id_maps[a].forEach( id => id_maps[id] = id_maps[a] );
 };
@@ -109,13 +145,19 @@ GroupMaker.prototype.merge_ids = function(group) {
     return;
   }
 
+  let relationship_string = ids.sort().join('+');
+
   ids.forEach( (id) => {
     if ( ! id_maps[id] ) {
       id_maps[id] = [];
+      id_maps[id].relationships = [];
     }
     ids.forEach( (a_id) => {
       if (id_maps[id].indexOf(a_id) < 0) {
         id_maps[id].push(a_id);
+        if (id_maps[id].relationships.indexOf(relationship_string) < 0) {
+          id_maps[id].relationships.push(relationship_string);
+        }
         if (id_maps[a_id]) {
           self.merge_lists(a_id,id);
         }
@@ -125,7 +167,9 @@ GroupMaker.prototype.merge_ids = function(group) {
 };
 
 GroupMaker.prototype._transform = function (group, enc, cb) {
-  this.merge_ids(group);
+  if (group.length > 1) {
+    this.merge_ids(group);
+  }
   cb();
 };
 
@@ -140,6 +184,7 @@ GroupMaker.prototype._flush = function (cb) {
     family_id++;
     let objects = ids.map( (id) => { return { stable_id: id, taxon_id: self.taxon_maps[id], family_id: family_id }  });
     if (objects.length > 1) {
+      objects.push( ids.relationships );
       self.push(objects);
     }
     ids.length = 0;
@@ -147,7 +192,7 @@ GroupMaker.prototype._flush = function (cb) {
   cb();
 };
 
-
+exports.DoGroups = DoGroups;
 exports.HomologyGroup = HomologyGroup;
 exports.FamilyGroup = FamilyGroup;
 exports.GroupMaker = GroupMaker;

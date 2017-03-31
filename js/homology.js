@@ -5,9 +5,12 @@ const sqlite = require('sqlite3');
 const path = require('path');
 const PassThrough = require('stream').PassThrough;
 const GroupMaker = require('./groupers').GroupMaker;
+const DoGroups = require('./groupers').DoGroups;
 const Expander = require('./expander').Expander;
 const IdMapper = require('./idmapper').IdMapper;
+const csv = require('csv-parse');
 const fs = require('fs');
+const zlib = require('zlib');
 
 let wanted_taxonomy = (nconf.get('taxonomy') || '').split(',').map( id => parseInt(id) );
 
@@ -91,6 +94,18 @@ let retrieve_ids = function(db,is_pan) {
   return Promise.resolve(rs);
 };
 
+if (nconf.get('pregen_db')) {
+  retrieve_ids = function(db,is_pan) {
+    let rs = new PassThrough({ objectMode: true });
+    let gunzip = zlib.createGunzip();
+    let stream = fs.createReadStream(nconf.get('pregen_db')).pipe(gunzip);
+    console.log("Retrieving from csv");
+    let parser = csv({delimiter: ',', columns: true});
+    stream.pipe(parser).pipe(new DoGroups({objectMode: true})).pipe(rs);
+    return Promise.resolve(rs);
+  };
+}
+
 let wait_for_stream = function(stream,label) {
   let count = 0;
   stream.on('data', () => {
@@ -107,8 +122,11 @@ let wait_for_stream = function(stream,label) {
 }
 
 let base_retrieve = function(group_maker) {
-  let base_db = new sqlite.Database(base_db_path);
-  return retrieve_ids(base_db)
+  let base_db;
+  if (base_db_path) {
+    base_db = new sqlite.Database(base_db_path);
+  }
+  return retrieve_ids()
          .then( stream => {
           console.log("Base DB ready, retrieving records");
           stream.pipe(group_maker,{end: false});
@@ -150,6 +168,14 @@ let retrieve = function() {
   let expander = new Expander();
 
   group_maker.pipe(expander);
+
+  if (nconf.get('pregen_db')) {
+    Promise.resolve()
+      .then( () => base_retrieve(group_maker) )
+      .then( () => console.log("Retrieved base data") )
+
+    return Promise.resolve(expander);
+  }
 
   Promise.resolve()
     .then( () => base_retrieve(group_maker) )
