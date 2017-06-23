@@ -42,7 +42,24 @@ Grouper.prototype._transform = function (row, enc, cb) {
     cb();
     return;
   }
-  let taxon = (row[2] == 'C.griseus') ? '10029' : '10090';
+  let taxon_string = row[2];
+  let taxon = 0;
+  switch (taxon_string) {
+    case 'C.griseus':
+      taxon = '10029';
+      break;
+    case 'H.sapiens':
+      taxon = '9606';
+      break;
+    case 'M.musculus':
+      taxon = '10090';
+      break;
+    case 'R.norvegicus':
+      taxon = '10116';
+      break;
+    case 'S.scrofa':
+      taxon = '9823'
+  }
   this.row_grouper({ taxon_id : +taxon, stable_id : row[4], family_id : 'inparanoid_'+row[0] });
   cb();
 };
