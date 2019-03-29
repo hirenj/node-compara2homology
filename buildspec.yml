@@ -8,7 +8,7 @@ phases:
       - npm install
   pre_build:
     commands:
-      - exit 2
+      - touch VERSION_MATCHING && exit 2
       - compara_version=$(curl -Sss 'https://rest.ensembl.org/info/comparas?' -H 'Content-type:text/xml' | grep 'release' | sed -e 's/.*release="//' -e 's/".*//')
       - checkversion --fail-on-match --print-remote --remote 'http://rest.ensemblgenomes.org/info/eg_version' --regex '(\d+)' > ensembl_genomes_version.txt
       - testversion 'homology.json' --static "\$compara_version"
